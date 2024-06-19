@@ -1,94 +1,28 @@
 #!/usr/bin/python3
-"""
-Defines function that determines the winner after a certain number of rounds
-of playing the Prime Game
+"""Prime game module.
 """
 
 
 def isWinner(x, nums):
+    """Determines the winner of a prime game session with `x` rounds.
     """
-    Determines the winner after a certain number of rounds
-    of playing the Prime Game
-
-    The Prime Game is a list of consecutive ints starting from 1 up to and
-    including n. Players take turns picking prime numbers, which removes
-    that number and all multiples of that number from the set. The player that
-    has no more prime numbers to choose loses the game.
-
-    Maria and Ben are playing the game, and Maria always goes first.
-
-    parameters:
-        x [int]:
-            the number of rounds
-        nums [list of ints]:
-            list of all ns for each round
-
-    returns:
-        the name of the player that won the most rounds,
-        if both players play optimally,
-        or None, if the winner cannot be determined
-    """
-    Maria = 0
-    Ben = 0
-    if (x < 1 or x != len(nums)):
+    if x < 1 or not nums:
         return None
-    for n in nums:
-        winner = primeGame(n)
-        if winner == 1:
-            Maria += 1
-        elif winner == 2:
-            Ben += 1
-    if Maria == Ben:
+    marias_wins, bens_wins = 0, 0
+    # generate primes with a limit of the maximum number in nums
+    n = max(nums)
+    primes = [True for _ in range(1, n + 1, 1)]
+    primes[0] = False
+    for i, is_prime in enumerate(primes, 1):
+        if i == 1 or not is_prime:
+            continue
+        for j in range(i + i, n + 1, i):
+            primes[j - 1] = False
+    # filter the number of primes less than n in nums for each round
+    for _, n in zip(range(x), nums):
+        primes_count = len(list(filter(lambda x: x, primes[0: n])))
+        bens_wins += primes_count % 2 == 0
+        marias_wins += primes_count % 2 == 1
+    if marias_wins == bens_wins:
         return None
-    elif Maria > Ben:
-        return "Maria"
-    return "Ben"
-
-
-def primeGame(n):
-    """
-    Determines the winner of a single round of the Prime Game
-
-    parameters:
-        n [int]:
-            the maximum number of the set of consecutive ints
-                from 1 up to and including n
-
-    returns:
-        1 if the first player wins the game
-        2 if the second player wins the game
-    """
-    if (n < 1):
-        return None
-    if (n == 1):
-        return (2)
-    numbers = list(range(n + 1))
-    player = 1
-    prime = 2
-    primes_used = []
-    for num in numbers:
-        if (num % prime == 0):
-            numbers.remove(num)
-    primes_used.append(prime)
-    prime = 3
-    while (numbers != [1]):
-        if (player == 1):
-            player = 2
-        else:
-            player = 1
-        for num in numbers:
-            if (num % prime == 0):
-                numbers.remove(num)
-        primes_used.append(prime)
-        prime += 2
-        flag = 1
-        while (flag):
-            for num in primes_used:
-                if (prime % num == 0):
-                    prime += 2
-                    break
-            else:
-                flag = 0
-    if (player == 1):
-        return 1
-    return 2
+    return 'Maria' if marias_wins > bens_wins else 'Ben'
